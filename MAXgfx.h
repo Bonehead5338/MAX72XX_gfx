@@ -21,6 +21,20 @@
 #define SPRITE_LOCATION_6 0x40
 #define SPRITE_LOCATION_7 0x80
 
+struct SpriteInitStruct
+{
+	const uint8_t* Data;
+	uint8_t Width;
+	uint8_t Height;
+	int PositionX;
+	int PositionY;
+	uint8_t PositionConstraints;
+	bool Show = true;
+
+	SpriteInitStruct(uint8_t* data, uint8_t width, uint8_t height, int position_x = 0, int position_y = 0, uint8_t position_constraints = 0x00, bool show = true) :
+		Data(data), Width(width), Height(height), PositionX(PositionX), PositionY(position_y), PositionConstraints(position_constraints), Show(show) {}
+};
+
 class MAXSprite
 {
 
@@ -75,7 +89,7 @@ protected:
 public:
 
 	MAXSprite() {};
-	MAXSprite(const uint8_t* const data, uint8_t width, uint8_t height, int position_x = 0, int position_y = 0, uint8_t position_constraints = NoEdges, bool show = true); 
+	MAXSprite(const uint8_t* data, uint8_t width, uint8_t height, int position_x = 0, int position_y = 0, uint8_t position_constraints = NoEdges, bool show = true); 
 	void initSprite(const uint8_t* data, uint8_t width, uint8_t height, int position_x = 0, int position_y = 0, uint8_t position_constraints = NoEdges, bool show = true);
 	
 	//sprite position setters
@@ -146,17 +160,65 @@ public:
 	MAXSprite_Rectangle(uint8_t width, uint8_t height, uint8_t border_thickness = 1, bool filled = false, int position_x = 0, int position_y = 0, uint8_t position_constraints = NoEdges, bool show = true);
 	void initRectangle(uint8_t width, uint8_t height, uint8_t border_thickness = 1, bool filled = false, int position_x = 0, int position_y = 0, uint8_t position_constraints = NoEdges, bool show = true);
 
+	//getters
+	uint8_t getBorderThickness() { return BorderThickness; }
+	bool isFilled() { return Filled; }
+
+	//setters
+	void setBorderThickness(uint8_t border_thickness)
+	{
+		initRectangle(Width, Height, border_thickness, Filled, PositionX, PositionY, PositionConstraints, Show);
+	}
+
+	void setFilled()
+	{
+		initRectangle(Width, Height, BorderThickness, true, PositionX, PositionY, PositionConstraints, Show);
+	}
+
+	void setNotFilled()
+	{
+		initRectangle(Width, Height, BorderThickness, false, PositionX, PositionY, PositionConstraints, Show);
+	}
 };
 
 class MAXSprite_StraightLine : public MAXSprite
 {
 protected:
+	uint8_t Length;
+	uint8_t Thickness;
+	bool Vertical;
 
 public:
 	//constructor
 	MAXSprite_StraightLine() {};
 	MAXSprite_StraightLine(uint8_t length, uint8_t thickness, bool vertical = false, int position_x = 0, int position_y = 0, uint8_t position_constraints = NoEdges, bool show = true);
 	void initStraightLine(uint8_t length, uint8_t thickness, bool vertical = false, int position_x = 0, int position_y = 0, uint8_t position_constraints = NoEdges, bool show = true);
+
+	//getters
+	uint8_t getLength() { return Length; }
+	uint8_t getThickness() { return Thickness; }
+	bool isVertical() { return Vertical; }
+
+	//setters
+	void setLength(uint8_t length)
+	{
+		initStraightLine(length, Thickness, Vertical, PositionX, PositionY, PositionConstraints, Show);
+	}
+
+	void setThickness(uint8_t thickness)
+	{
+		initStraightLine(Length, thickness, Vertical, PositionX, PositionY, PositionConstraints, Show);
+	}
+
+	void setVertical()
+	{
+		initStraightLine(Length, Thickness, true, PositionX, PositionY, PositionConstraints, Show);
+	}
+
+	void setHorizontal()
+	{
+		initStraightLine(Length, Thickness, false, PositionX, PositionY, PositionConstraints, Show);
+	}
 
 };
 

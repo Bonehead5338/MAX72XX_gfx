@@ -36,38 +36,38 @@ namespace
 		//transpose x
 		for (uint8_t i = 0; i < MATRIX_DIM; i++)
 		{
-			if (move_x > 0)
-				*(input + i) >>= move_x;
-			else if (move_x < 0)
-				*(input + i) <<= abs(move_x);
+			if (abs(move_x) >= MATRIX_DIM)
+				input[i] = 0x00;
+			else
+			{
+				if (move_x > 0)
+					*(input + i) >>= move_x;
+				else if (move_x < 0)
+					*(input + i) <<= abs(move_x);
+			}
 		}
 
 		//transpose y
 		if (move_y)
 		{
 			//temporary storage for transposed matrix
-			uint8_t Temp[8];
-
-			// TODO fix this; it doesn't work once a sprite is out of the display range!
-			
+			uint8_t temp[8];
 
 			for (uint8_t i = 0; i < MATRIX_DIM; i++)
 			{
-				
+				if (abs(move_y) >= MATRIX_DIM)
+					temp[i] = 0x00;
+				else
+				{
+					if (i - move_y >= 0 && i - move_y < MATRIX_DIM)
+					{
+						*(temp + i) = *(input + i - move_y);
+					}
+					else *(temp + i) = 0x00;
+				}
 			}
 
-			
-			//for (uint8_t i = 0; i < MATRIX_DIM; i++)
-			//{
-			//	if (move_y > -MATRIX_DIM && move_y < MATRIX_DIM)
-			//		if (i - move_y >=0 && i - move_y < MATRIX_DIM)
-			//		{
-			//			*(Temp + i) = *(input + i - move_y);
-			//		}
-			//	else *(Temp + i) = 0x00;
-			//}
-
-			CopyMatrix(Temp, input);
+			CopyMatrix(temp, input);
 		}
 	}
 
@@ -151,7 +151,7 @@ void MAXSprite::detectEdges()
 	if (PositionX >= MATRIX_DIM) OutOfBoundsDetectionResults |= RightEdge;
 }
 
-MAXSprite::MAXSprite(const uint8_t* const data, uint8_t width, uint8_t height, int position_x /*= 0*/, int position_y /*= 0*/, uint8_t position_constraints /*= NoEdges*/, bool show /*= true*/)
+MAXSprite::MAXSprite(const uint8_t* data, uint8_t width, uint8_t height, int position_x /*= 0*/, int position_y /*= 0*/, uint8_t position_constraints /*= NoEdges*/, bool show /*= true*/)
 {
 	initSprite(data, width, height, position_x, position_y, position_constraints, show);
 }
@@ -342,6 +342,11 @@ void MAXSprite_StraightLine::initStraightLine(uint8_t length, uint8_t thickness,
 	{
 		line_data[i] = i < height ? 0xFF << (MATRIX_DIM - width) : 0x00;
 	}
+
+	//store local data
+	Length = line_length;
+	Thickness = line_thickness;
+	Vertical = vertical;
 
 	//initialize base class
 	MAXSprite::initSprite(line_data, width, height, position_x, position_y, position_constraints, show);

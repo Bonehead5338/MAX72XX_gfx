@@ -33,11 +33,6 @@ namespace
 
 	void TransposeMatrix(uint8_t* input, int move_x, int move_y)
 	{
-		
-		Serial.println("Transpose move_x, move_y");
-		Serial.println(move_x);
-		Serial.println(move_y);
-		
 		//transpose x
 		for (uint8_t i = 0; i < MATRIX_DIM; i++)
 		{
@@ -50,19 +45,27 @@ namespace
 		//transpose y
 		if (move_y)
 		{
+			//temporary storage for transposed matrix
 			uint8_t Temp[8];
 
-			//transpose y
 			// TODO fix this; it doesn't work once a sprite is out of the display range!
+			
+
 			for (uint8_t i = 0; i < MATRIX_DIM; i++)
 			{
-				if (move_y > -MATRIX_DIM && move_y < MATRIX_DIM)
-					if (i - move_y >=0 && i - move_y < MATRIX_DIM)
-					{
-						*(Temp + i) = *(input + i - move_y);
-					}
-				else *(Temp + i) = 0x00;
+				
 			}
+
+			
+			//for (uint8_t i = 0; i < MATRIX_DIM; i++)
+			//{
+			//	if (move_y > -MATRIX_DIM && move_y < MATRIX_DIM)
+			//		if (i - move_y >=0 && i - move_y < MATRIX_DIM)
+			//		{
+			//			*(Temp + i) = *(input + i - move_y);
+			//		}
+			//	else *(Temp + i) = 0x00;
+			//}
 
 			CopyMatrix(Temp, input);
 		}
@@ -140,7 +143,6 @@ void MAXSprite::detectEdges()
 	if (PositionX < 0) OverEdgeDetectionResults |= LeftEdge;
 	if (PositionX + Width > MATRIX_DIM) OverEdgeDetectionResults |= RightEdge;
 	
-
 	//OutofBounds
 	OutOfBoundsDetectionResults = 0; 
 	if (PositionY + Height <= 0) OutOfBoundsDetectionResults |= TopEdge;
@@ -149,12 +151,12 @@ void MAXSprite::detectEdges()
 	if (PositionX >= MATRIX_DIM) OutOfBoundsDetectionResults |= RightEdge;
 }
 
-MAXSprite::MAXSprite(const uint8_t* const data, uint8_t width, uint8_t height, int position_x /*= 0*/, int position_y /*= 0*/, uint8_t position_constraints /*= false*/, bool show /*= true*/)
+MAXSprite::MAXSprite(const uint8_t* const data, uint8_t width, uint8_t height, int position_x /*= 0*/, int position_y /*= 0*/, uint8_t position_constraints /*= NoEdges*/, bool show /*= true*/)
 {
 	initSprite(data, width, height, position_x, position_y, position_constraints, show);
 }
 
-void MAXSprite::initSprite(const uint8_t* data, uint8_t width, uint8_t height, int position_x /*= 0*/, int position_y /*= 0*/, uint8_t position_constraints /*= false*/, bool show /*= true*/)
+void MAXSprite::initSprite(const uint8_t* data, uint8_t width, uint8_t height, int position_x /*= 0*/, int position_y /*= 0*/, uint8_t position_constraints /*= NoEdges*/, bool show /*= true*/)
 {
 	//copy data to internal storage
 	CopyMatrix(data, SpriteData);
@@ -279,10 +281,10 @@ void MAXgfx::updateDisplay()
 
 }
 
-MAXSprite_MultiFrame::MAXSprite_MultiFrame(uint8_t** data, uint8_t frame_count, uint8_t width, uint8_t height, int position_x, int position_y, bool constrain_pos, bool show)
+MAXSprite_MultiFrame::MAXSprite_MultiFrame(uint8_t** data, uint8_t frame_count, uint8_t width, uint8_t height, int position_x, int position_y, bool position_constraints, bool show)
 {
 	//initialize base sprite class
-	MAXSprite::initSprite((uint8_t*)data, width, height, position_x, position_y, constrain_pos, show);
+	MAXSprite::initSprite((uint8_t*)data, width, height, position_x, position_y, position_constraints, show);
 
 	FrameCount = frame_count;
 	FrameData = (uint8_t*)data;
@@ -324,7 +326,7 @@ void MAXSprite_MultiFrame::reverseFrame()
 	loadFrame(CurrentFrame);
 }
 
-void MAXSprite_StraightLine::initStraightLine(uint8_t length, uint8_t thickness, bool vertical /*= false*/, int position_x /*= 0*/, int position_y /*= 0*/, uint8_t position_constraints /*= false*/, bool show /*= true*/)
+void MAXSprite_StraightLine::initStraightLine(uint8_t length, uint8_t thickness, bool vertical /*= false*/, int position_x /*= 0*/, int position_y /*= 0*/, uint8_t position_constraints /*= NoEdges*/, bool show /*= true*/)
 {
 	//limit length and thickness to size of matrix
 	uint8_t line_length = ConstrainToMatrixDimensions(length);
@@ -345,17 +347,17 @@ void MAXSprite_StraightLine::initStraightLine(uint8_t length, uint8_t thickness,
 	MAXSprite::initSprite(line_data, width, height, position_x, position_y, position_constraints, show);
 }
 
-MAXSprite_StraightLine::MAXSprite_StraightLine(uint8_t length, uint8_t thickness, bool vertical /*= false*/, int position_x /*= 0*/, int position_y /*= 0*/, uint8_t position_constraints /*= false*/, bool show /*= true*/)
+MAXSprite_StraightLine::MAXSprite_StraightLine(uint8_t length, uint8_t thickness, bool vertical /*= false*/, int position_x /*= 0*/, int position_y /*= 0*/, uint8_t position_constraints /*= NoEdges*/, bool show /*= true*/)
 {
 	initStraightLine(length, thickness, vertical, position_x, position_y, position_constraints, show);	
 }
 
-MAXSprite_Rectangle::MAXSprite_Rectangle(uint8_t width, uint8_t height, uint8_t border_thickness /*= 1*/, bool filled /*= false*/, int position_x /*= 0*/, int position_y /*= 0*/, uint8_t position_constraints /*= 0*/, bool show /*= true*/)
+MAXSprite_Rectangle::MAXSprite_Rectangle(uint8_t width, uint8_t height, uint8_t border_thickness /*= 1*/, bool filled /*= false*/, int position_x /*= 0*/, int position_y /*= 0*/, uint8_t position_constraints /*= NoEdges*/, bool show /*= true*/)
 {
 	initRectangle(width, height, border_thickness, filled, position_x, position_y, position_constraints, show);
 }
 
-void MAXSprite_Rectangle::initRectangle(uint8_t width, uint8_t height, uint8_t border_thickness /*= 1*/, bool filled /*= false*/, int position_x /*= 0*/, int position_y /*= 0*/, uint8_t position_constraints /*= 0*/, bool show /*= true*/)
+void MAXSprite_Rectangle::initRectangle(uint8_t width, uint8_t height, uint8_t border_thickness /*= 1*/, bool filled /*= false*/, int position_x /*= 0*/, int position_y /*= 0*/, uint8_t position_constraints /*= NoEdges*/, bool show /*= true*/)
 {
 	//check if border thickness is valid (use maximum valid value if too thick, border thickness of 1 for smallest dim of 1)
 	uint8_t smallest_dim = min(width, height);

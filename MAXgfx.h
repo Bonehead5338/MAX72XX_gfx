@@ -21,12 +21,12 @@
 #define SPRITE_LOCATION_6 0x40
 #define SPRITE_LOCATION_7 0x80
 
-//TODO Make the sprite class a base class only to hide the init function. Subclasses will have initSubClass (eg initRectangle)
 class MAXSprite
 {
 
 public:
 	enum enumEdges : uint8_t {
+		NoEdges = 0x00,
 		TopEdge = 0x01,
 		BottomEdge = 0x02,
 		VerticalEdges = 0x03,
@@ -75,8 +75,8 @@ protected:
 public:
 
 	MAXSprite() {};
-	MAXSprite(const uint8_t* const data, uint8_t width, uint8_t height, int position_x = 0, int position_y = 0, uint8_t pos_constraints = 0, bool show = true); 
-	void initSprite(const uint8_t* data, uint8_t width, uint8_t height, int position_x = 0, int position_y = 0, uint8_t pos_constraints = 0, bool show = true);
+	MAXSprite(const uint8_t* const data, uint8_t width, uint8_t height, int position_x = 0, int position_y = 0, uint8_t position_constraints = NoEdges, bool show = true); 
+	void initSprite(const uint8_t* data, uint8_t width, uint8_t height, int position_x = 0, int position_y = 0, uint8_t position_constraints = NoEdges, bool show = true);
 	
 	//sprite position setters
 	void setPosition(int position_x, int position_y);
@@ -143,8 +143,8 @@ protected:
 public:
 	//constructor
 	MAXSprite_Rectangle() {}
-	MAXSprite_Rectangle(uint8_t width, uint8_t height, uint8_t border_thickness = 1, bool filled = false, int position_x = 0, int position_y = 0, uint8_t position_constraints = 0, bool show = true);
-	void initRectangle(uint8_t width, uint8_t height, uint8_t border_thickness = 1, bool filled = false, int position_x = 0, int position_y = 0, uint8_t position_constraints = 0, bool show = true);
+	MAXSprite_Rectangle(uint8_t width, uint8_t height, uint8_t border_thickness = 1, bool filled = false, int position_x = 0, int position_y = 0, uint8_t position_constraints = NoEdges, bool show = true);
+	void initRectangle(uint8_t width, uint8_t height, uint8_t border_thickness = 1, bool filled = false, int position_x = 0, int position_y = 0, uint8_t position_constraints = NoEdges, bool show = true);
 
 };
 
@@ -155,8 +155,8 @@ protected:
 public:
 	//constructor
 	MAXSprite_StraightLine() {};
-	MAXSprite_StraightLine(uint8_t length, uint8_t thickness, bool vertical = false, int position_x = 0, int position_y = 0, uint8_t constrain_pos = false, bool show = true);
-	void initStraightLine(uint8_t length, uint8_t thickness, bool vertical = false, int position_x = 0, int position_y = 0, uint8_t constrain_pos = false, bool show = true);
+	MAXSprite_StraightLine(uint8_t length, uint8_t thickness, bool vertical = false, int position_x = 0, int position_y = 0, uint8_t position_constraints = NoEdges, bool show = true);
+	void initStraightLine(uint8_t length, uint8_t thickness, bool vertical = false, int position_x = 0, int position_y = 0, uint8_t position_constraints = NoEdges, bool show = true);
 
 };
 

@@ -127,26 +127,26 @@ void MAXSprite::setConstrainedPosition(int position_x, int position_y, uint8_t p
 void MAXSprite::detectEdges()
 {
 	//OnEdge
-	OnEdge = 0;
-	if (PositionY == 0) OnEdge |= TopEdge;
-	if (PositionY + Height == MATRIX_DIM) OnEdge |= BottomEdge;
-	if (PositionX == 0) OnEdge |= LeftEdge;
-	if (PositionX + Width == MATRIX_DIM) OnEdge |= RightEdge;
+	OnEdgeDectionResults = 0;
+	if (PositionY == 0) OnEdgeDectionResults |= TopEdge;
+	if (PositionY + Height == MATRIX_DIM) OnEdgeDectionResults |= BottomEdge;
+	if (PositionX == 0) OnEdgeDectionResults |= LeftEdge;
+	if (PositionX + Width == MATRIX_DIM) OnEdgeDectionResults |= RightEdge;
 
 	//OverEdge
-	OverEdge = 0;
-	if (PositionY < 0) OverEdge |= TopEdge;
-	if (PositionY + Height > MATRIX_DIM) OverEdge |= BottomEdge; 
-	if (PositionX < 0) OverEdge |= LeftEdge;
-	if (PositionX + Width > MATRIX_DIM) OverEdge |= RightEdge;
+	OverEdgeDetectionResults = 0;
+	if (PositionY < 0) OverEdgeDetectionResults |= TopEdge;
+	if (PositionY + Height > MATRIX_DIM) OverEdgeDetectionResults |= BottomEdge; 
+	if (PositionX < 0) OverEdgeDetectionResults |= LeftEdge;
+	if (PositionX + Width > MATRIX_DIM) OverEdgeDetectionResults |= RightEdge;
 	
 
 	//OutofBounds
-	OutOfBounds = 0; 
-	if (PositionY + Height <= 0) OutOfBounds |= TopEdge;
-	if (PositionY >= MATRIX_DIM) OutOfBounds |= BottomEdge;
-	if (PositionX + Width <= 0) OutOfBounds |= LeftEdge;
-	if (PositionX >= MATRIX_DIM) OutOfBounds |= RightEdge;
+	OutOfBoundsDetectionResults = 0; 
+	if (PositionY + Height <= 0) OutOfBoundsDetectionResults |= TopEdge;
+	if (PositionY >= MATRIX_DIM) OutOfBoundsDetectionResults |= BottomEdge;
+	if (PositionX + Width <= 0) OutOfBoundsDetectionResults |= LeftEdge;
+	if (PositionX >= MATRIX_DIM) OutOfBoundsDetectionResults |= RightEdge;
 }
 
 MAXSprite::MAXSprite(const uint8_t* const data, uint8_t width, uint8_t height, int position_x /*= 0*/, int position_y /*= 0*/, uint8_t position_constraints /*= false*/, bool show /*= true*/)

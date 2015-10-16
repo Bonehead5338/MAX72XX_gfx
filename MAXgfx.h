@@ -38,8 +38,8 @@ public:
 
 protected:
 
-	//sprite data (max = 8x8)
-	uint8_t SpriteData[8];
+	//sprite data
+	uint8_t SpriteData[MATRIX_DIM];
 
 	//Width and height of sprite
 	uint8_t Width = 0;
@@ -52,18 +52,24 @@ protected:
 	int PositionX;
 	int PositionY;
 
-	//position is constrained to edges;
+	//constraints on position (stop sprite from moving past edges)
 	uint8_t PositionConstraints;
 
 	//sprite is to be displayed
 	bool Show;
 
-	uint8_t OnEdge;
-	uint8_t OverEdge;
-	uint8_t OutOfBounds;
+	//edge detection results
+	uint8_t OnEdgeDectionResults;
+	uint8_t OverEdgeDetectionResults;
+	uint8_t OutOfBoundsDetectionResults;
 
+	//limit a value to be in matrix range
 	static uint8_t ConstrainToMatrixDimensions(uint8_t dimension) { return dimension < MATRIX_DIM ? dimension : MATRIX_DIM; }
+	
+	//constrain position based on configured edge constraints
 	void setConstrainedPosition(int position_x, int position_y, uint8_t edgeconstraints);
+	
+	//detect on edge, over edge, past edge results
 	void detectEdges();
 
 public:
@@ -72,9 +78,9 @@ public:
 	MAXSprite(const uint8_t* const data, uint8_t width, uint8_t height, int position_x = 0, int position_y = 0, uint8_t pos_constraints = 0, bool show = true); 
 	void initSprite(const uint8_t* data, uint8_t width, uint8_t height, int position_x = 0, int position_y = 0, uint8_t pos_constraints = 0, bool show = true);
 	
+	//sprite position setters
 	void setPosition(int position_x, int position_y);
 	void move(int distance_x, int distance_y);
-
 	void setPositionConstraints(uint8_t constraints);
 
 	//show/hide public methods
@@ -83,13 +89,13 @@ public:
 	bool isShown() { return Show; }
 	bool isHidden() { return !Show; }
 
-	//edge detection methods
-	bool onEdge(enumEdges edge) { return OnEdge & edge; }
-	uint8_t onEdge() { return OnEdge; }
-	bool overEdge(enumEdges edge) { return OverEdge & OverEdge; }
-	uint8_t overEdge() { return OverEdge; }
-	bool outOfBounds(enumEdges edge) { return OutOfBounds & edge; }
-	uint8_t outOfBounds() { return OutOfBounds; }
+	//edge detection getters
+	bool onEdge(enumEdges edge) { return OnEdgeDectionResults & edge; }
+	uint8_t onEdge() { return OnEdgeDectionResults; }
+	bool overEdge(enumEdges edge) { return OverEdgeDetectionResults & OverEdgeDetectionResults; }
+	uint8_t overEdge() { return OverEdgeDetectionResults; }
+	bool outOfBounds(enumEdges edge) { return OutOfBoundsDetectionResults & edge; }
+	uint8_t outOfBounds() { return OutOfBoundsDetectionResults; }
 
 	//position and dimension getters
 	int getPositionX() { return PositionX; }
@@ -97,6 +103,7 @@ public:
 	uint8_t getWidth() { return Width; }
 	uint8_t getHeight() { return Height; }
 
+	//return data to be displayed on matrix
 	const uint8_t* getDisplayData();
 };
 

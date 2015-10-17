@@ -8,18 +8,22 @@
 namespace
 {
 	//function prototypes
-	void ClearMatrix(uint8_t* input);
+	void ClearMatrix(uint8_t* input, bool invert = false);
 	void OrMatrix(uint8_t* input1_result, const uint8_t* input2);
 	void TransposeMatrix(uint8_t* input, int move_x, int move_y);
 	void CopyMatrix(const uint8_t* input, uint8_t* output);
 	bool MaskMatrix(uint8_t* input, uint8_t size_x, uint8_t size_y);
+	bool AreSpritesOverlapped(const MAXSprite* Sprite1, const MAXSprite* Sprite2);
 
 	//function definitions
-	void ClearMatrix(uint8_t* input)
+	void ClearMatrix(uint8_t* input, bool invert)
 	{
-		//clear all values
+		//clear all values (or set all if invert is set
 		for (uint8_t i = 0; i < MATRIX_DIM; i++)
-			*(input + i) = 0x00;
+			if (invert)
+				*(input + i) = 0xFF;
+			else
+				*(input + i) = 0x00;
 	}
 
 	void OrMatrix(uint8_t* input1_result, const uint8_t* input2)
@@ -95,20 +99,36 @@ namespace
 				*(input + i) = 0x00;
 		}
 	}
+
+	bool AreSpritesOverlapped(MAXSprite* Sprite1, MAXSprite* Sprite2, uint8_t* result = NULL)
+	{
+		bool found_overlap = false;
+		
+		uint8_t sprite1_data[8];
+		uint8_t sprite2_data[8];
+
+		CopyMatrix(Sprite1->getDisplayData(), sprite1_data);
+		CopyMatrix(Sprite2->getDisplayData(), sprite2_data);
+
+		for (uint8_t i = 0; i < MATRIX_DIM; i++)
+		{
+			uint8_t row_result = (sprite1_data[i] & sprite2_data[i]);
+			if (row_result) found_overlap = true;
+			
+			//return overlapped areas if result is non-null
+			if (result) result[i] = row_result;
+		}
+
+		return found_overlap;
+	}
 }
 
 
 void MAXSprite::setConstrainedPosition(int position_x, int position_y, uint8_t position_constraints)
 {
-	
 	//copy position to class members
 	PositionX = position_x;
 	PositionY = position_y;
-
-	Serial.println("setConstrainedPosition X, Y before");
-	Serial.println(PositionX);
-	Serial.println(PositionY);
-
 	
 	//constrain if required
 	if (position_constraints & TopEdge)
@@ -119,12 +139,6 @@ void MAXSprite::setConstrainedPosition(int position_x, int position_y, uint8_t p
 		PositionY = (position_y < 0) ? 0 : position_y;
 	if (position_constraints & RightEdge)
 		PositionY = (position_y > MATRIX_DIM - Width) ? MATRIX_DIM - Width : position_y;
-
-	Serial.println("setConstrainedPosition X, Y after");
-	Serial.println(PositionX);
-	Serial.println(PositionY);
-
-
 }
 
 void MAXSprite::detectEdges()
@@ -150,6 +164,57 @@ void MAXSprite::detectEdges()
 	if (PositionX + Width <= 0) OutOfBoundsDetectionResults |= LeftEdge;
 	if (PositionX >= MATRIX_DIM) OutOfBoundsDetectionResults |= RightEdge;
 }
+
+void MAXSprite::updateDisplayData()
+{
+	ClearMatrix(DisplayData);
+	CopyMatrix(SpriteData, DisplayData);
+	MaskMatrix(DisplayData, Width, Height);
+	TransposeMatrix(DisplayData, PositionX, PositionY);
+}
+
+uint8_t MAXSprite::isTouchingSprite(MAXSprite& other)
+{
+	
+	//test left/right edges
+	if (PositionY + Height - 1 >= other.PositionY && PositionY < other.PositionY + other.Height)
+	{
+		if (PositionX + Width == other.PositionX)
+			return RightEdge;
+		else if (PositionX == other.PositionX + other.Width)
+			return LeftEdge;
+	}
+
+	//test top/bottom edges
+	if (PositionX + Width - 1 >= other.PositionX && PositionX < other.PositionX + other.Width)
+	{
+		if (PositionY + Height == other.PositionY)
+			return TopEdge;
+		else if (PositionY == other.PositionY + other.Height)
+			return BottomEdge;
+	}
+	
+	//test left corners
+	if (other.PositionX + other.Width == PositionX)
+	{
+		if (other.PositionY + other.Height == PositionY)
+			return (TopEdge | LeftEdge);
+		else if (PositionY + Height == other.PositionY)
+			return (BottomEdge | LeftEdge);
+	}
+
+	//test right corners
+	if (PositionX + Width == other.PositionX)
+	{
+		if (other.PositionY + other.Height == PositionY)
+			return (TopEdge | RightEdge);
+		else if (PositionY + Height == other.PositionY)
+			return (BottomEdge | RightEdge);
+	}
+
+	return 0;
+}
+
 
 MAXSprite::MAXSprite(const uint8_t* data, uint8_t width, uint8_t height, int position_x /*= 0*/, int position_y /*= 0*/, uint8_t position_constraints /*= NoEdges*/, bool show /*= true*/)
 {
@@ -177,12 +242,6 @@ void MAXSprite::initSprite(const uint8_t* data, uint8_t width, uint8_t height, i
 
 void MAXSprite::setPosition(int position_x, int position_y)
 {
-	Serial.println("setPosition x, y, constraints");
-	Serial.println(position_x);
-	Serial.println(position_y);
-	Serial.println(PositionConstraints);
-	Serial.println();
-	
 	//set position using configured constraints
 	setConstrainedPosition(position_x, position_y, PositionConstraints);
 
@@ -202,17 +261,23 @@ void MAXSprite::setPositionConstraints(uint8_t constraints)
 
 const uint8_t* MAXSprite::getDisplayData()
 {
-	ClearMatrix(DisplayData);
-	CopyMatrix(SpriteData, DisplayData);
-	MaskMatrix(DisplayData, Width, Height);
-	TransposeMatrix(DisplayData, PositionX, PositionY);
-
+	updateDisplayData();
 	return DisplayData;
+}
+
+uint8_t MAXSprite::getDisplayRow(uint8_t row)
+{
+	updateDisplayData();
+
+	if (row < MATRIX_DIM)
+		return DisplayData[row];
+	else
+		return 0x00;
 }
 
 bool MAXgfx::addSprite(MAXSprite& sprite)
 {
-	for (uint8_t i = 0; i < SPRITE_LOCATIONS; i++)
+	for (uint8_t i = 0; i < SPRITE_LOCATION_CNT; i++)
 	{
 		//find first open (null) slot and store sprite
 		if (!Sprites[i])
@@ -229,13 +294,13 @@ bool MAXgfx::addSprite(MAXSprite& sprite)
 bool MAXgfx::removeSprite(uint8_t location)
 {
 	//check for valid location
-	if (location >= SPRITE_LOCATIONS) return false;
+	if (location >= SPRITE_LOCATION_CNT) return false;
 
 	//clear location
 	Sprites[location] = NULL;
 	
 	//move all sprites to lower locations (fill the gap if it's there)
-	for (uint8_t i = location + 1; i < SPRITE_LOCATIONS; i++)
+	for (uint8_t i = location + 1; i < SPRITE_LOCATION_CNT; i++)
 	{
 		//check for filled (non-null) higher slots and move them down by one to fill gap
 		if (Sprites[i])
@@ -251,7 +316,7 @@ bool MAXgfx::removeSprite(uint8_t location)
 bool MAXgfx::replaceSprite(uint8_t location, MAXSprite sprite)
 {
 	//check for valid location
-	if (location >= SPRITE_LOCATIONS) return false;
+	if (location >= SPRITE_LOCATION_CNT) return false;
 
 	//replace sprite at given location
 	Sprites[location] = &sprite;
@@ -266,7 +331,7 @@ void MAXgfx::updateDisplay()
 	ClearMatrix(DisplayData);
 
 	//get all sprite data and OR together
-	for (uint8_t i = 0; i < SPRITE_LOCATIONS; i++)
+	for (uint8_t i = 0; i < SPRITE_LOCATION_CNT; i++)
 	{
 		//check for filled (non-null) sprites and or with result
 		if (Sprites[i])

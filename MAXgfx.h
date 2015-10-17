@@ -11,7 +11,7 @@
 
 #include <MAX72XX.h>
 
-#define SPRITE_LOCATIONS 8
+#define SPRITE_LOCATION_CNT 8
 #define SPRITE_LOCATION_0 0x01
 #define SPRITE_LOCATION_1 0x02
 #define SPRITE_LOCATION_2 0x04
@@ -86,6 +86,10 @@ protected:
 	//detect on edge, over edge, past edge results
 	void detectEdges();
 
+	void updateDisplayData();
+
+
+
 public:
 
 	MAXSprite() {};
@@ -104,12 +108,12 @@ public:
 	bool isHidden() { return !Show; }
 
 	//edge detection getters
-	bool onEdge(enumEdges edge) { return OnEdgeDectionResults & edge; }
-	uint8_t onEdge() { return OnEdgeDectionResults; }
-	bool overEdge(enumEdges edge) { return OverEdgeDetectionResults & OverEdgeDetectionResults; }
-	uint8_t overEdge() { return OverEdgeDetectionResults; }
-	bool outOfBounds(enumEdges edge) { return OutOfBoundsDetectionResults & edge; }
-	uint8_t outOfBounds() { return OutOfBoundsDetectionResults; }
+	bool onMatrixEdge(enumEdges edge) { return OnEdgeDectionResults & edge; }
+	uint8_t onMatrixEdge() { return OnEdgeDectionResults; }
+	bool overMatrixEdge(enumEdges edge) { return OverEdgeDetectionResults & OverEdgeDetectionResults; }
+	uint8_t overMatrixEdge() { return OverEdgeDetectionResults; }
+	bool outOfMatrixBounds(enumEdges edge) { return OutOfBoundsDetectionResults & edge; }
+	uint8_t outOfMatrixBounds() { return OutOfBoundsDetectionResults; }
 
 	//position and dimension getters
 	int getPositionX() { return PositionX; }
@@ -119,6 +123,10 @@ public:
 
 	//return data to be displayed on matrix
 	const uint8_t* getDisplayData();
+	uint8_t getDisplayRow(uint8_t row);
+
+	uint8_t isTouchingSprite(MAXSprite& sprite);
+	bool isTouchingSprite(MAXSprite& sprite, uint8_t edges) { return (isTouchingSprite(sprite) == edges); }
 };
 
 /** A fixed-width sprite with multiple frames */
@@ -229,7 +237,7 @@ protected:
 
 	MAX72XX MAX;
 	
-	MAXSprite* Sprites[SPRITE_LOCATIONS];
+	MAXSprite* Sprites[SPRITE_LOCATION_CNT];
 	uint8_t DisplayData[MATRIX_DIM];
 
 public:
@@ -238,13 +246,11 @@ public:
 
 	void init() { MAX.init(); };
 
-
-	//void init(MAX72XX max72xx); 
-
 	bool addSprite(MAXSprite& sprite);
 	bool removeSprite(uint8_t location);
 	bool replaceSprite(uint8_t location, MAXSprite sprite);
 
+	// TODO: add master transpose
 	void updateDisplay();
 
 	MAXSprite* getSprite(uint8_t location);
